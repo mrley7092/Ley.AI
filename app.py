@@ -21,39 +21,25 @@ st.set_page_config(
 # Styles CSS personnalisés
 st.markdown("""
 <style>
-    /* Couleurs personnalisées */
     .stApp {
         background-color: #0e1117;
     }
     
-    /* Style des messages */
     .stChatMessage {
         border-radius: 15px;
         padding: 10px;
     }
     
-    /* Titre principal */
     h1 {
         color: #FF4B4B;
         text-align: center;
     }
     
-    /* Sous-titre */
     .stCaption {
         text-align: center;
         color: #888;
     }
     
-    /* Bouton personnalisé */
-    .stButton > button {
-        background-color: #FF4B4B;
-        color: white;
-        border-radius: 10px;
-        border: none;
-        padding: 10px 20px;
-    }
-    
-    /* Sidebar */
     section[data-testid="stSidebar"] {
         background-color: #1a1a2e;
     }
@@ -124,7 +110,6 @@ with st.sidebar:
     with col1:
         if st.button("💾 Sauvegarder"):
             if st.session_state.history:
-                # Sauvegarder dans un fichier
                 timestamp = datetime.now().strftime("%Y%m%d_%H%M%S")
                 filename = f"conversation_{timestamp}.txt"
                 
@@ -179,6 +164,8 @@ for role, content in st.session_state.history:
 # Zone de saisie
 if prompt := st.chat_input("Posez-moi une question..."):
     # Vérifier les commandes spéciales
+    is_command = False
+    
     if prompt.lower() == "/aide":
         st.info("""
         **Commandes disponibles :**
@@ -192,7 +179,7 @@ if prompt := st.chat_input("Posez-moi une question..."):
         **Personnalités disponibles :**
         - Amical, Professionnel, Drôle, Tuteur, Expert
         """)
-        continue
+        is_command = True
     
     elif prompt.lower() == "/sauvegarder":
         if st.session_state.history:
@@ -207,52 +194,57 @@ if prompt := st.chat_input("Posez-moi une question..."):
             st.success(f"💾 Sauvegardé dans {filename}")
         else:
             st.warning("Aucune conversation à sauvegarder !")
-        continue
+        is_command = True
     
     elif prompt.lower() == "/effacer":
         st.session_state.history = []
         st.session_state.chat_saved = False
         st.rerun()
-        continue
+        is_command = True
     
     elif prompt.lower() == "/nouvelle":
         st.session_state.history = []
         st.session_state.chat_saved = False
         st.success("✨ Nouvelle conversation démarrée !")
-        continue
+        is_command = True
     
-    # Afficher le message de l'utilisateur
-    with st.chat_message("user"):
-        st.write(prompt)
+    # Si c'est une commande, on arrête ici
+    if is_command:
+        pass
     
-    st.session_state.history.append(("user", prompt))
-    
-    # Envoyer à Groq
-    with st.spinner("🤔 Réflexion..."):
-        try:
-            client = Groq(api_key=GROQ_API_KEY)
-            
-            messages = [{"role": "system", "content": PERSONALITIES[personality]}]
-            
-            for role, content in st.session_state.history:
-                if role == "user":
-                    messages.append({"role": "user", "content": content})
-                else:
-                    messages.append({"role": "assistant", "content": content})
-            
-            response = client.chat.completions.create(
-                model="llama-3.3-70b-versatile",
-                messages=messages,
-                temperature=temperature
-            )
-            
-            ai_response = response.choices[0].message.content
-            
-        except Exception as e:
-            ai_response = f"Erreur : {str(e)}"
-    
-    # Afficher la réponse
-    with st.chat_message("assistant"):
-        st.write(ai_response)
-    
-    st.session_state.history.append(("assistant", ai_response))
+    else:
+        # Afficher le message de l'utilisateur
+        with st.chat_message("user"):
+            st.write(prompt)
+        
+        st.session_state.history.append(("user", prompt))
+        
+        # Envoyer à Groq
+        with st.spinner("🤔 Réflexion..."):
+            try:
+                client = Groq(api_key=GROQ_API_KEY)
+                
+                messages = [{"role": "system", "content": PERSONALITIES[personality]}]
+                
+                for role, content in st.session_state.history:
+                    if role == "user":
+                        messages.append({"role": "user", "content": content})
+                    else:
+                        messages.append({"role": "assistant", "content": content})
+                
+                response = client.chat.completions.create(
+                    model="llama-3.3-70b-versatile",
+                    messages=messages,
+                    temperature=temperature
+                )
+                
+                ai_response = response.choices[0].message.content
+                
+            except Exception as e:
+                ai_response = f"Erreur : {str(e)}"
+        
+        # Afficher la réponse
+        with st.chat_message("assistant"):
+            st.write(ai_response)
+        
+        st.session_state.history.append(("assistant", ai_response))
