@@ -3,6 +3,7 @@ from groq import Groq
 from dotenv import load_dotenv
 import os
 from datetime import datetime
+import uuid
 
 # Charger le fichier .env
 load_dotenv()
@@ -10,408 +11,348 @@ load_dotenv()
 # Récupérer la clé API
 GROQ_API_KEY = os.getenv("GROQ_API_KEY")
 
-# Configuration de la page
+# Configuration de la page - Style ChatGPT
 st.set_page_config(
-    page_title="Ley.AI",
+    page_title="Ley.AI - Chat",
     page_icon="🤖",
-    layout="centered",
+    layout="wide",
     initial_sidebar_state="expanded"
 )
 
-# Traductions
-TRANSLATIONS = {
-    "Français": {
-        "title": "Votre assistant personnel intelligent",
-        "input_placeholder": "Posez-moi une question ou parlez...",
-        "thinking": "Réflexion...",
-        "save": "Sauvegarder",
-        "clear": "Effacer",
-        "help": "Aide",
-        "messages": "Messages",
-        "saved": "Conversation sauvegardée",
-        "no_history": "Aucune conversation à sauvegarder !",
-        "new_chat": "Nouvelle conversation démarrée !",
-        "upload_image": "Télécharger une image",
-        "upload_file": "Télécharger un fichier",
-        "command_help": "Commandes disponibles",
-        "personality": "Personnalité",
-        "creativity": "Créativité",
-        "commands": "Commandes",
-        "stats": "Statistiques",
-        "language": "Langue",
-        "theme": "Thème",
-        "dark": "Sombre",
-        "light": "Clair",
-        "auto": "Automatique",
-    },
-    "English": {
-        "title": "Your personal AI assistant",
-        "input_placeholder": "Ask me a question or speak...",
-        "thinking": "Thinking...",
-        "save": "Save",
-        "clear": "Clear",
-        "help": "Help",
-        "messages": "Messages",
-        "saved": "Conversation saved",
-        "no_history": "No conversation to save!",
-        "new_chat": "New conversation started!",
-        "upload_image": "Upload an image",
-        "upload_file": "Upload a file",
-        "command_help": "Available commands",
-        "personality": "Personality",
-        "creativity": "Creativity",
-        "commands": "Commands",
-        "stats": "Statistics",
-        "language": "Language",
-        "theme": "Theme",
-        "dark": "Dark",
-        "light": "Light",
-        "auto": "Auto",
-    },
-    "Español": {
-        "title": "Tu asistente personal de IA",
-        "input_placeholder": "Hazme una pregunta o habla...",
-        "thinking": "Pensando...",
-        "save": "Guardar",
-        "clear": "Borrar",
-        "help": "Ayuda",
-        "messages": "Mensajes",
-        "saved": "Conversación guardada",
-        "no_history": "¡Sin conversación para guardar!",
-        "new_chat": "¡Nueva conversación iniciada!",
-        "upload_image": "Subir una imagen",
-        "upload_file": "Subir un archivo",
-        "command_help": "Comandos disponibles",
-        "personality": "Personalidad",
-        "creativity": "Creatividad",
-        "commands": "Comandos",
-        "stats": "Estadísticas",
-        "language": "Idioma",
-        "theme": "Tema",
-        "dark": "Oscuro",
-        "light": "Claro",
-        "auto": "Automático",
-    },
-}
+# Styles CSS - Interface ChatGPT
+st.markdown("""
+<style>
+    /* Import字体 */
+    @import url('https://fonts.googleapis.com/css2?family=Sora:wght@300;400;500;600&display=swap');
+    
+    /* Style général */
+    * {
+        font-family: 'Sora', sans-serif;
+    }
+    
+    /* Fond sombre style ChatGPT */
+    .stApp {
+        background-color: #171717;
+        color: #ececec;
+    }
+    
+    /* Sidebar */
+    section[data-testid="stSidebar"] {
+        background-color: #202123;
+        width: 260px !important;
+    }
+    
+    /* Messages utilisateur */
+    div[data-testid="chat-message-user"] {
+        background-color: #2f2f2f !important;
+        padding: 15px 20px;
+        border-radius: 12px;
+        margin: 10px 0;
+    }
+    
+    /* Messages assistant */
+    div[data-testid="chat-message-assistant"] {
+        background-color: #171717 !important;
+        padding: 15px 20px;
+        border-radius: 12px;
+        margin: 10px 0;
+    }
+    
+    /* Zone de saisie */
+    div[data-testid="stChatInput"] {
+        background-color: #2f2f2f;
+        border-radius: 12px;
+        border: 1px solid #3f3f3f;
+    }
+    
+    /* Boutons sidebar */
+    .sidebar-button {
+        background-color: transparent;
+        border: 1px solid #3f3f3f;
+        border-radius: 8px;
+        padding: 12px;
+        width: 100%;
+        text-align: left;
+        color: #ececec;
+        cursor: pointer;
+        transition: all 0.2s;
+    }
+    
+    .sidebar-button:hover {
+        background-color: #2f2f2f;
+    }
+    
+    /* Nouveau chat button */
+    .new-chat-btn {
+        background-color: #10a37f;
+        color: white;
+        border: none;
+        border-radius: 8px;
+        padding: 12px;
+        width: 100%;
+        font-weight: 600;
+        cursor: pointer;
+    }
+    
+    .new-chat-btn:hover {
+        background-color: #0d8b6e;
+    }
+    
+    /* Titres */
+    h1, h2, h3 {
+        color: #ececec !important;
+    }
+    
+    /* Description sidebar */
+    .sidebar-section {
+        padding: 10px;
+        color: #8e8e8e;
+        font-size: 12px;
+    }
+    
+    /* Input focus */
+    textarea:focus {
+        outline: 2px solid #10a37f !important;
+    }
+    
+    /* Scrollbar */
+    ::-webkit-scrollbar {
+        width: 8px;
+    }
+    
+    ::-webkit-scrollbar-track {
+        background: #171717;
+    }
+    
+    ::-webkit-scrollbar-thumb {
+        background: #3f3f3f;
+        border-radius: 4px;
+    }
+    
+    /* Chat input container */
+    .chat-input-container {
+        position: fixed;
+        bottom: 20px;
+        left: 50%;
+        transform: translateX(-50%);
+        width: 60%;
+        max-width: 800px;
+    }
+    
+    /* Logo style */
+    .logo-text {
+        font-size: 20px;
+        font-weight: 700;
+        color: #ececec;
+    }
+    
+    /* Settings panel */
+    .settings-panel {
+        background-color: #2f2f2f;
+        border-radius: 12px;
+        padding: 20px;
+        margin: 10px 0;
+    }
+</style>
+""", unsafe_allow_html=True)
 
 # Personnalités disponibles
 PERSONALITIES = {
-    "Français": {
-        "Amical": """Tu es Ley.AI, un assistant conversationnel amical et serviable.
-        Tu es chaleureux, patient et toujours souriant.
-        Tu aimes aider les gens et tu réponds avec enthousiasme.""",
-        
-        "Professionnel": """Tu es Ley.AI, un assistant professionnel.
-        Tu es précis, concis et敬.
-        Tu donnes des réponses structurées et professionnelles.""",
-        
-        "Drôle": """Tu es Ley.AI, un assistant amusant et spirituel.
-        Tu aimes faire des blagues et garder une ambiance légère.
-        Tu es créatif et original dans tes réponses.""",
-        
-        "Tuteur": """Tu es Ley.AI, un professeur patient et encourageant.
-        Tu expliques les choses clairement et simplement.
-        Tu poses des questions pour aider à comprendre et donnes des exemples.""",
-        
-        "Expert": """Tu es Ley.AI, un expert en tout.
-        Tu donnes des réponses détaillées et approfondies.
-        Tu partages des connaissances avancées et des sources.""",
-    },
-    "English": {
-        "Amical": """You are Ley.AI, a friendly and helpful conversational assistant.
-        You are warm, patient, and always smiling.
-        You love helping people and respond with enthusiasm.""",
-        
-        "Professionnel": """You are Ley.AI, a professional assistant.
-        You are precise, concise, and敬.
-        You give structured and professional answers.""",
-        
-        "Drôle": """You are Ley.AI, a fun and witty assistant.
-        You love making jokes and keeping a light atmosphere.
-        You are creative and original in your responses.""",
-        
-        "Tuteur": """You are Ley.AI, a patient and encouraging teacher.
-        You explain things clearly and simply.
-        You ask questions to help understand and give examples.""",
-        
-        "Expert": """You are Ley.AI, an expert in everything.
-        You give detailed and in-depth answers.
-        You share advanced knowledge and sources.""",
-    },
-    "Español": {
-        "Amical": """Eres Ley.AI, un asistente conversacional amable y servicial.
-        Eres cálido, paciente y siempre sonriente.
-        Te encanta ayudar a las personas y respondes con entusiasmo.""",
-        
-        "Professionnel": """Eres Ley.AI, un asistente profesional.
-        Eres preciso, conciso y敬.
-        Das respuestas estructuradas y profesionales.""",
-        
-        "Drôle": """Eres Ley.AI, un asistente divertido y ingenioso.
-        Te encanta hacer bromas y mantener un ambiente ligero.
-        Eres creativo y original en tus respuestas.""",
-        
-        "Tuteur": """Eres Ley.AI, un profesor paciente y animador.
-        Explicas las cosas de forma clara y sencilla.
-        Haces preguntas para ayudar a entender y das ejemplos.""",
-        
-        "Expert": """Eres Ley.AI, un experto en todo.
-        Das respuestas detalladas y profundas.
-        Compartes conocimientos avanzados y fuentes.""",
-    },
+    "🤖 Assistant": """Tu es Ley.AI, un assistant intelligent et utile.
+    Tu réponds de manière claire, concise et helpful.
+    Tu es toujours poli et professionnel.""",
+    
+    "😊 Amical": """Tu es Ley.AI, un ami virtuel chaleureux et attentionné.
+    Tu es toujours de bonne humeur et aimes discuter.""",
+    
+    "🎓 Tuteur": """Tu es Ley.AI, un professeur patient et pédagogue.
+    Tu expliques tout en détail et tu adaptes ton niveau.""",
+    
+    "😄 Drôle": """Tu es Ley.AI, un ami spirituel et marrant.
+    Tu fais des blagues et garderas toujours une ambiance légère.""",
+    
+    "💼 Professionnel": """Tu es Ley.AI, un expert professionnel.
+    Tu donnes des réponses structurées et très détaillées.""",
 }
 
-# Initialiser l'historique
-if "history" not in st.session_state:
-    st.session_state.history = []
-if "personality" not in st.session_state:
-    st.session_state.personality = "Amical"
-if "chat_saved" not in st.session_state:
-    st.session_state.chat_saved = False
-if "language" not in st.session_state:
-    st.session_state.language = "Français"
-if "theme" not in st.session_state:
-    st.session_state.theme = "Auto"
+# Langues
+LANGUAGES = {
+    "Français": "fr",
+    "English": "en", 
+    "Español": "es",
+}
 
-# Obtenir les traductions
-t = TRANSLATIONS[st.session_state.language]
-personality_dict = PERSONALITIES[st.session_state.language]
+# Initialiser les sessions
+if "conversations" not in st.session_state:
+    st.session_state.conversations = {}
+    st.session_state.current_conversation = None
 
-# Appliquer le thème
-if st.session_state.theme == "Dark":
-    st.markdown("""
-    <style>
-    .stApp {background-color: #0e1117;}
-    section[data-testid="stSidebar"] {background-color: #1a1a2e;}
-    </style>
-    """, unsafe_allow_html=True)
-elif st.session_state.theme == "Light":
-    st.markdown("""
-    <style>
-    .stApp {background-color: #ffffff;}
-    section[data-testid="stSidebar"] {background-color: #f0f0f0;}
-    </style>
-    """, unsafe_allow_html=True)
+if "current_conversation" not in st.session_state:
+    st.session_state.current_conversation = str(uuid.uuid4())
+    st.session_state.conversations[st.session_state.current_conversation] = {
+        "messages": [],
+        "personality": "🤖 Assistant"
+    }
 
-# Titre principal
-st.title("🤖 Ley.AI")
-st.caption(t["title"])
+if "show_settings" not in st.session_state:
+    st.session_state.show_settings = False
 
-# Sidebar avec les options
+# Obtenir la conversation actuelle
+current_conv = st.session_state.conversations[st.session_state.current_conversation]
+
+# Fonction pour créer une nouvelle conversation
+def new_chat():
+    new_id = str(uuid.uuid4())
+    st.session_state.conversations[new_id] = {
+        "messages": [],
+        "personality": "🤖 Assistant"
+    }
+    st.session_state.current_conversation = new_id
+    st.rerun()
+
+# Fonction pour changer de conversation
+def switch_conversation(conv_id):
+    st.session_state.current_conversation = conv_id
+    st.rerun()
+
+# SIDEBAR - Style ChatGPT
 with st.sidebar:
-    st.header("⚙️ " + t["commands"])
+    # Logo
+    st.markdown(f"""
+    <div style="padding: 10px; text-align: center;">
+        <span class="logo-text">🤖 Ley.AI</span>
+    </div>
+    """, unsafe_allow_html=True)
     
-    # Langue
-    st.subheader("🌐 " + t["language"])
-    language = st.selectbox(
-        t["language"],
-        ["Français", "English", "Español"],
-        index=["Français", "English", "Español"].index(st.session_state.language)
-    )
+    # Bouton nouveau chat
+    if st.button("➕ Nouveau Chat", key="new_chat"):
+        new_chat()
     
-    if language != st.session_state.language:
-        st.session_state.language = language
-        st.rerun()
+    st.markdown("---")
     
-    # Thème
-    st.subheader("🎨 " + t["theme"])
-    theme = st.selectbox(
-        t["theme"],
-        [t["auto"], t["dark"], t["light"]],
-        index=["Auto", "Dark", "Light"].index(st.session_state.theme)
-    )
+    # Titre conversations
+    st.markdown("### 🗂️ Conversations")
     
-    if theme == t["dark"]:
-        st.session_state.theme = "Dark"
-    elif theme == t["light"]:
-        st.session_state.theme = "Light"
-    else:
-        st.session_state.theme = "Auto"
+    # Liste des conversations
+    for conv_id, conv_data in reversed(st.session_state.conversations.items()):
+        conv_title = f"Chat {list(st.session_state.conversations.keys()).index(conv_id) + 1}"
+        
+        if len(conv_data["messages"]) > 0:
+            # Prendre le premier message comme titre
+            first_msg = conv_data["messages"][0][1][:30] + "..."
+            conv_title = first_msg
+        
+        btn_key = f"conv_{conv_id}"
+        
+        if st.button(f"💬 {conv_title}", key=btn_key):
+            switch_conversation(conv_id)
     
-    # Choisir la personnalité
-    st.subheader("🎭 " + t["personality"])
-    personality = st.selectbox(
-        t["personality"],
-        list(personality_dict.keys()),
-        index=list(personality_dict.keys()).index(st.session_state.personality)
-    )
+    st.markdown("---")
     
-    if personality != st.session_state.personality:
-        st.session_state.personality = personality
-        st.session_state.history = []
-        st.rerun()
+    # Paramètres
+    if st.button("⚙️ Paramètres"):
+        st.session_state.show_settings = not st.session_state.show_settings
     
-    # Température
-    st.subheader("🌡️ " + t["creativity"])
-    temperature = st.slider(t["creativity"], 0.0, 2.0, 0.7, 0.1)
-    
-    # Boutons de commandes
-    st.subheader("📋 " + t["commands"])
-    
-    col1, col2 = st.columns(2)
-    
-    with col1:
-        if st.button("💾 " + t["save"]):
-            if st.session_state.history:
-                timestamp = datetime.now().strftime("%Y%m%d_%H%M%S")
-                filename = f"conversation_{timestamp}.txt"
-                
-                with open(filename, "w", encoding="utf-8") as f:
-                    f.write(f"Conversation with Ley.AI - {timestamp}\n")
-                    f.write("=" * 50 + "\n\n")
-                    for role, content in st.session_state.history:
-                        role_name = "You" if role == "user" else "Ley.AI"
-                        f.write(f"{role_name}: {content}\n\n")
-                
-                st.session_state.chat_saved = True
-                st.success(f"💾 {t['saved']}: {filename}")
-            else:
-                st.warning(t["no_history"])
-    
-    with col2:
-        if st.button("🗑️ " + t["clear"]):
-            st.session_state.history = []
-            st.session_state.chat_saved = False
+    if st.session_state.show_settings:
+        st.markdown("### ⚙️ Paramètres")
+        
+        # Personnalité
+        selected_personality = st.selectbox(
+            "Personnalité",
+            list(PERSONALITIES.keys()),
+            index=list(PERSONALITIES.keys()).index(current_conv["personality"])
+        )
+        
+        if selected_personality != current_conv["personality"]:
+            current_conv["personality"] = selected_personality
             st.rerun()
-    
-    # Bouton aide
-    if st.button("❓ " + t["help"]):
-        st.info(f"""
-        **{t['command_help']}**
         
-        - {t['input_placeholder']}
-        - /aide - {t['help']}
-        - /save - {t['save']}
-        - /clear - {t['clear']}
-        - /new - {t['new_chat']}
+        # Température
+        temperature = st.slider("Créativité", 0.0, 2.0, 0.7, 0.1)
         
-        **{t['personality']}:**
-        - Amical, Professionnel, Drôle, Tuteur, Expert
-        """)
-    
-    # Statistiques
-    st.subheader("📊 " + t["stats"])
-    if st.session_state.history:
-        st.write(f"{t['messages']}: {len(st.session_state.history) // 2}")
-    else:
-        st.write(f"{t['messages']}: 0")
-    
-    if st.session_state.chat_saved:
-        st.success("✅ " + t["saved"])
+        # Effacer conversation
+        if st.button("🗑️ Effacer cette conversation"):
+            if len(st.session_state.conversations) > 1:
+                del st.session_state.conversations[st.session_state.current_conversation]
+                new_chat()
+            else:
+                current_conv["messages"] = []
+                st.rerun()
+
+# MAIN CHAT AREA
+# Titre de la conversation
+st.markdown(f"""
+<div style="padding: 20px; text-align: center;">
+    <h2 style="margin: 0;">{current_conv['personality']}</h2>
+</div>
+""", unsafe_allow_html=True)
 
 # Afficher les messages
-for role, content in st.session_state.history:
-    with st.chat_message(role):
-        st.write(content)
+chat_container = st.container()
 
-# Zone de saisie avec voix
-st.subheader("💬 " + t["input_placeholder"])
+with chat_container:
+    for role, content in current_conv["messages"]:
+        with st.chat_message(role):
+            st.write(content)
 
-# Option voix
-use_voice = st.checkbox("🎤 Mode voix")
+# Zone de saisie en bas
+st.markdown("<div style='height: 80px;'></div>", unsafe_allow_html=True)
 
-if use_voice:
-    audio_value = st.audio_input("Parlez maintenant...")
-    if audio_value:
-        st.info("🎤 Voix détectée ! (La transcription sera bientôt disponible)")
-        prompt = st.text_input(t["input_placeholder"], key="text_input")
-    else:
-        prompt = st.chat_input(t["input_placeholder"])
-else:
-    prompt = st.chat_input(t["input_placeholder"])
+# Input area style ChatGPT
+col1, col2, col3 = st.columns([8, 1, 1])
 
-# Upload d'images
-with st.expander("🖼️ " + t["upload_image"]):
-    uploaded_image = st.file_uploader(t["upload_image"], type=["jpg", "jpeg", "png", "gif"])
-    if uploaded_image:
-        st.image(uploaded_image, caption="Image uploadée", use_container_width=True)
+with col1:
+    prompt = st.chat_input("Envoyez un message à Ley.AI...")
 
-# Upload de fichiers
-with st.expander("📁 " + t["upload_file"]):
-    uploaded_file = st.file_uploader(t["upload_file"], type=["txt", "pdf", "doc", "py", "json", "csv"])
-    if uploaded_file:
-        st.success(f"📁 Fichier uploadé: {uploaded_file.name}")
+with col2:
+    if st.button("🎤"):
+        st.info("Mode voix bientôt disponible!")
 
-# Traitement du message
+with col3:
+    if st.button("📎"):
+        st.info("Upload de fichiers bientôt disponible!")
+
+# Traiter le message
 if prompt:
-    # Vérifier les commandes spéciales
-    is_command = False
+    # Ajouter le message utilisateur
+    current_conv["messages"].append(("user", prompt))
     
-    if prompt.lower() in ["/aide", "/help", "/ayuda"]:
-        st.info(f"""
-        **{t['command_help']}**
-        
-        - {t['input_placeholder']}
-        - /aide - {t['help']}
-        - /save - {t['save']}
-        - /clear - {t['clear']}
-        - /new - {t['new_chat']}
-        
-        **{t['personality']}:**
-        - Amical, Professionnel, Drôle, Tuteur, Expert
-        """)
-        is_command = True
+    # Envoyer à Groq
+    with st.spinner("Réflexion..."):
+        try:
+            client = Groq(api_key=GROQ_API_KEY)
+            
+            messages = [{"role": "system", "content": PERSONALITIES[current_conv["personality"]]}]
+            
+            for role, content in current_conv["messages"]:
+                messages.append({"role": role, "content": content})
+            
+            response = client.chat.completions.create(
+                model="llama-3.3-70b-versatile",
+                messages=messages,
+                temperature=temperature
+            )
+            
+            ai_response = response.choices[0].message.content
+            
+        except Exception as e:
+            ai_response = f"Erreur: {str(e)}"
     
-    elif prompt.lower() in ["/save", "/sauvegarder", "/guardar"]:
-        if st.session_state.history:
-            timestamp = datetime.now().strftime("%Y%m%d_%H%M%S")
-            filename = f"conversation_{timestamp}.txt"
-            with open(filename, "w", encoding="utf-8") as f:
-                f.write(f"Conversation with Ley.AI - {timestamp}\n")
-                f.write("=" * 50 + "\n\n")
-                for role, content in st.session_state.history:
-                    role_name = "You" if role == "user" else "Ley.AI"
-                    f.write(f"{role_name}: {content}\n\n")
-            st.success(f"💾 {t['saved']}: {filename}")
-        else:
-            st.warning(t["no_history"])
-        is_command = True
+    # Ajouter la réponse
+    current_conv["messages"].append(("assistant", ai_response))
     
-    elif prompt.lower() in ["/clear", "/effacer", "/borrar"]:
-        st.session_state.history = []
-        st.session_state.chat_saved = False
-        st.rerun()
-        is_command = True
-    
-    elif prompt.lower() in ["/new", "/nouvelle", "/nueva"]:
-        st.session_state.history = []
-        st.session_state.chat_saved = False
-        st.success("✨ " + t["new_chat"])
-        is_command = True
-    
-    if not is_command:
-        # Afficher le message de l'utilisateur
-        with st.chat_message("user"):
-            st.write(prompt)
-        
-        st.session_state.history.append(("user", prompt))
-        
-        # Envoyer à Groq
-        with st.spinner("🤔 " + t["thinking"]):
-            try:
-                client = Groq(api_key=GROQ_API_KEY)
-                
-                messages = [{"role": "system", "content": personality_dict[personality]}]
-                
-                for role, content in st.session_state.history:
-                    if role == "user":
-                        messages.append({"role": "user", "content": content})
-                    else:
-                        messages.append({"role": "assistant", "content": content})
-                
-                response = client.chat.completions.create(
-                    model="llama-3.3-70b-versatile",
-                    messages=messages,
-                    temperature=temperature
-                )
-                
-                ai_response = response.choices[0].message.content
-                
-            except Exception as e:
-                ai_response = f"Erreur : {str(e)}"
-        
-        # Afficher la réponse
-        with st.chat_message("assistant"):
-            st.write(ai_response)
-        
-        st.session_state.history.append(("assistant", ai_response))
+    # Rerun pour afficher
+    st.rerun()
+
+# Premier message d'accueil
+if len(current_conv["messages"]) == 0:
+    st.markdown("""
+    <div style="text-align: center; padding: 50px 20px;">
+        <h1 style="font-size: 60px;">🤖</h1>
+        <h2>Comment puis-je vous aider aujourd'hui ?</h2>
+        <p style="color: #8e8e8e;">
+            Vous pouvez me poser des questions, me demander de vous aider avec du code,<br>
+            de l'écriture, ou simplement discuter!
+        </p>
+    </div>
+    """, unsafe_allow_html=True)
